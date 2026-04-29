@@ -1,14 +1,22 @@
 import Link from "next/link";
 import PhotoGrid from "@/components/PhotoGrid";
 import type { PhotoMeta } from "@/app/api/photos/route";
+import { list } from "@vercel/blob";
 
 async function getPhotos(): Promise<PhotoMeta[]> {
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-    const res = await fetch(`${base}/api/photos`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.photos ?? [];
+    const { blobs } = await list({ prefix: "photos/", limit: 200 });
+    const metaBlobs = blobs.filter((b) => b.pathname.endsWith(".meta.json"));
+    const photos: PhotoMeta[] = await Promise.all(
+      metaBlobs.map(async (blob) => {
+        const res = await fetch(blob.url, { cache: "no-store" });
+        return res.json() as Promise<PhotoMeta>;
+      })
+    );
+    photos.sort(
+      (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+    );
+    return photos;
   } catch {
     return [];
   }

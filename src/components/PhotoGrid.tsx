@@ -21,18 +21,23 @@ export default function PhotoGrid({ photos }: { photos: PhotoMeta[] }) {
         {photos.map((photo) => (
           <div
             key={photo.imageUrl}
-            className="cursor-pointer group relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm hover:shadow-md transition-shadow"
+            className="cursor-pointer group flex flex-col rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
             onClick={() => setSelected(photo)}
           >
-            <Image
-              src={photo.imageUrl}
-              alt={photo.title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-white text-sm font-medium truncate">{photo.title}</p>
+            <div className="relative aspect-square bg-gray-100">
+              <Image
+                src={photo.imageUrl}
+                alt={photo.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+              />
+            </div>
+            <div className="p-3">
+              <p className="text-sm font-semibold text-gray-800 truncate">{photo.title || "無標題"}</p>
+              {photo.description && (
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{photo.description}</p>
+              )}
             </div>
           </div>
         ))}
