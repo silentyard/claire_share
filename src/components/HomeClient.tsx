@@ -61,8 +61,8 @@ export default function HomeClient({
         {/* 標題與 menu */}
         <div className="relative flex items-start justify-between">
           <div className="flex-1 text-center">
-            <h1 className="text-5xl font-black text-gray-900 leading-tight">
-              Claire<br />Share
+            <h1 className="text-4xl font-black leading-tight text-purple-800 mb-2">
+              Claire's<br/>Pocket Moments
             </h1>
             <Countdown />
           </div>
