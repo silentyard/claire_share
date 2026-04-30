@@ -71,7 +71,7 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
         <select
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
-          className="border border-gray-200 rounded-xl px-2 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white shrink-0"
+          className="border border-gray-200 rounded-xl px-2 py-2 text-sm text-gray-800 [color-scheme:light] focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white shrink-0"
         >
           {MEMBERS.map((m) => (
             <option key={m} value={m}>{m}</option>
@@ -82,7 +82,7 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="說點什麼…"
-          className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+          className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 [color-scheme:light] focus:outline-none focus:ring-2 focus:ring-pink-300"
         />
         <button
           type="submit"
