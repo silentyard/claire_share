@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import type { PhotoMeta } from "@/app/api/photos/route";
 import type { Comment } from "@/app/api/comments/route";
@@ -18,18 +18,12 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-function CommentSection({ imageUrl }: { imageUrl: string }) {
-  const [comments, setComments] = useState<Comment[]>([]);
+function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initialComments: Comment[] }) {
+  const [comments, setComments] = useState<Comment[]>(initialComments);
   const [author, setAuthor] = useState(MEMBERS[0]);
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetch(`/api/comments?imageUrl=${encodeURIComponent(imageUrl)}`)
-      .then((r) => r.json())
-      .then((d) => setComments(d.comments ?? []));
-  }, [imageUrl]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -102,7 +96,7 @@ function CommentSection({ imageUrl }: { imageUrl: string }) {
   );
 }
 
-export default function PhotoFeed({ photos }: { photos: PhotoMeta[] }) {
+export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMeta[]; initialComments: Record<string, Comment[]> }) {
   const [selected, setSelected] = useState<PhotoMeta | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -184,7 +178,7 @@ export default function PhotoFeed({ photos }: { photos: PhotoMeta[] }) {
                 <p className="mt-1 text-xs text-gray-300">{new Date(selected.uploadedAt).toLocaleString("zh-TW")}</p>
               </div>
 
-              <CommentSection imageUrl={selected.imageUrl} />
+              <CommentSection imageUrl={selected.imageUrl} initialComments={initialComments[selected.imageUrl] ?? []} />
             </div>
 
 
