@@ -57,5 +57,5 @@ export async function POST(request: Request) {
     allowOverwrite: true,
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, comments });
 }
