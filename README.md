@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Claire Share
 
-## Getting Started
+私人相簿網站，支援照片上傳、留言（含貼圖）、依日期瀏覽，並有倒數計時器。
 
-First, run the development server:
+## 技術棧
 
-```bash
+- **Next.js 16** (App Router, TypeScript)
+- **Vercel Blob** — 儲存圖片、metadata、留言
+- **Tailwind CSS**
+- **Vercel** — 部署
+
+---
+
+## 本地開發
+
+```powershell
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打開 [http://localhost:3000](http://localhost:3000)。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`.env.local` 需要包含：
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxx
+```
 
-## Learn More
+Token 可從 Vercel Dashboard → Storage → Blob → `.env.local` 取得。
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 新增貼圖
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. 把 PNG 放進 `public/stickers/`
+2. 在 `src/components/PhotoGrid.tsx` 的 `STICKERS` 陣列加上對應的檔名
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Blob 管理腳本
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+使用 `scripts/blob-admin.ts` 可以直接操作 Vercel Blob 中的資料，不需要手動進 Dashboard。
+
+```powershell
+npx tsx scripts/blob-admin.ts <command>
+```
+
+### 指令一覧
+
+| 指令 | 說明 |
+|------|------|
+| `list-photos` | 列出所有照片（含上傳者、時間、URL） |
+| `list-comments` | 列出所有留言（含貼圖） |
+| `set-uploader <imageUrl> <name>` | 修改照片的上傳者名稱 |
+| `set-uploaded-at <imageUrl> <datetime>` | 修改照片的上傳時間 |
+| `delete-photo <imageUrl>` | 刪除照片及其 metadata、留言 |
+| `delete-comment <imageUrl> <index>` | 刪除指定照片的第 N 則留言（從 0 開始） |
+
+### 範例
+
+```powershell
+# 列出所有照片，取得 imageUrl
+npx tsx scripts/blob-admin.ts list-photos
+
+# 修改上傳者
+npx tsx scripts/blob-admin.ts set-uploader https://xxx.blob.vercel-storage.com/photos/123.png 伴伴
+
+# 修改上傳時間（會決定照片出現在哪一天）
+npx tsx scripts/blob-admin.ts set-uploaded-at https://xxx.blob.vercel-storage.com/photos/123.png "2026-05-01 20:30"
+
+# 刪除照片的第 0 則留言
+npx tsx scripts/blob-admin.ts delete-comment https://xxx.blob.vercel-storage.com/photos/123.png 0
+```
+
+> `datetime` 接受任何 JS 可解析格式，例如 `"2026-05-01 20:30"` 或 `"2026-05-01T20:30:00+08:00"`。
+
