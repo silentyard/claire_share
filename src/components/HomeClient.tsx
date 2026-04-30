@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import PhotoFeed from "@/components/PhotoGrid";
+import Countdown from "@/components/Countdown";
 import type { PhotoMeta } from "@/app/api/photos/route";
 import type { Comment } from "@/app/api/comments/route";
 
@@ -54,8 +55,8 @@ export default function HomeClient({
   }, []);
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#F4A0A0" }}>
-      <div className="max-w-sm mx-auto px-4 pt-10 pb-6">
+    <main className="min-h-screen">
+      <div className="max-w-[402px] mx-auto px-4 pt-10 pb-6">
 
         {/* 標題與 menu */}
         <div className="relative flex items-start justify-between">
@@ -63,7 +64,7 @@ export default function HomeClient({
             <h1 className="text-5xl font-black text-gray-900 leading-tight">
               Claire<br />Share
             </h1>
-            <p className="text-gray-500 mt-1 text-base">分享你的美好時刻</p>
+            <Countdown />
           </div>
 
           {/* 右上角 menu 按鈕 */}
@@ -112,13 +113,13 @@ export default function HomeClient({
 
         {/* 非今天時顯示日期標籤 */}
         {!isToday && (
-          <div className="mt-6 flex items-center justify-between">
-            <span className="text-white font-semibold text-base">
+          <div className="mt-6 flex items-center justify-between bg-white/40 px-4 py-2 rounded-xl">
+            <span className="text-pink-600 font-semibold text-base">
               {formatMenuDate(selectedDate)}
             </span>
             <button
               onClick={() => setSelectedDate(today)}
-              className="text-white/70 text-sm hover:text-white transition-colors"
+              className="text-pink-500 font-medium text-sm hover:text-pink-700 bg-white/60 px-3 py-1 rounded-lg transition-colors"
             >
               回今天
             </button>
@@ -128,7 +129,7 @@ export default function HomeClient({
         {/* 照片 feed */}
         <div className="mt-6">
           {filtered.length === 0 && isToday ? (
-            <p className="text-center text-white/70 py-16 text-sm">
+            <p className="text-center text-pink-400 py-16 text-sm font-medium">
               來上傳今天的第一張照片吧！
             </p>
           ) : (
