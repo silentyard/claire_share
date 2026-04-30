@@ -111,7 +111,7 @@ export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMe
   }
 
   if (photos.length === 0) {
-    return <p className="text-center text-white/70 py-16 text-sm">還沒有照片，點上方 ＋ 上傳第一張吧！</p>;
+    return null;
   }
 
   return (
