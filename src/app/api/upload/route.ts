@@ -6,6 +6,7 @@ export async function POST(request: Request) {
   const file = formData.get("file") as File;
   const title = (formData.get("title") as string) || "Untitled";
   const description = (formData.get("description") as string) || "";
+  const uploader = (formData.get("uploader") as string) || "";
 
   if (!file) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   const imageBlob = await put(baseName, file, { access: "public" });
 
   // Upload metadata as companion JSON
-  const metadata = { title, description, imageUrl: imageBlob.url, uploadedAt: new Date().toISOString() };
+  const metadata = { title, description, uploader, imageUrl: imageBlob.url, uploadedAt: new Date().toISOString() };
   await put(`${baseName}.meta.json`, JSON.stringify(metadata), {
     access: "public",
     contentType: "application/json",

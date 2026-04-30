@@ -8,6 +8,7 @@ export default function UploadForm() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [uploader, setUploader] = useState("柔柔");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -32,6 +33,7 @@ export default function UploadForm() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("uploader", uploader);
     formData.append("title", title);
     formData.append("description", description);
 
@@ -68,6 +70,19 @@ export default function UploadForm() {
           className="hidden"
           onChange={handleFileChange}
         />
+      </div>
+
+      {/* Uploader */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">上傳者</label>
+        <select
+          value={uploader}
+          onChange={(e) => setUploader(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 [color-scheme:light] focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+        >
+          <option value="柔柔">柔柔</option>
+          <option value="伴伴">伴伴</option>
+        </select>
       </div>
 
       {/* Title */}

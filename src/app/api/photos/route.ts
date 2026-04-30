@@ -6,6 +6,7 @@ export interface PhotoMeta {
   description: string;
   imageUrl: string;
   uploadedAt: string;
+  uploader?: string;
 }
 
 export async function GET() {
