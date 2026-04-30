@@ -29,8 +29,16 @@ export default function HomeClient({
   photos: PhotoMeta[];
   initialComments: Record<string, Comment[]>;
 }) {
+  const EMPTY_MESSAGES = [
+    "今天吃了什麼好吃的呀？拍張照來看看？",
+    "今天的天空長什麼樣子？我也想看看柔柔眼裡的風景。",
+    "想伴伴嗎？我也很想柔柔。分享一下你今天的一個小瞬間吧。",
+    "今天有沒有什麼值得記錄的時刻？沒有的話，日常的流水帳，伴伴也想看~",
+  ];
+
   const today = todayStr();
   const [selectedDate, setSelectedDate] = useState<string>(today);
+  const [emptyMsg] = useState(() => EMPTY_MESSAGES[Math.floor(Math.random() * EMPTY_MESSAGES.length)]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -129,8 +137,8 @@ export default function HomeClient({
         {/* 照片 feed */}
         <div className="mt-6">
           {filtered.length === 0 && isToday ? (
-            <p className="text-center text-pink-400 py-16 text-sm font-medium">
-              來上傳今天的第一張照片吧！
+            <p className="text-center text-pink-500 py-16 text-sm font-medium leading-relaxed px-4">
+              {emptyMsg}
             </p>
           ) : (
             <PhotoFeed photos={filtered} initialComments={initialComments} />
