@@ -7,7 +7,18 @@ import type { Comment } from "@/app/api/comments/route";
 
 // ── 可自行修改成員名單 ──────────────────────────
 const MEMBERS = ["柔柔", "伴伴"];
+// ── 貼圖清單（檔名對應 public/stickers/ 目錄）──
+const STICKERS = ["sticker1-rm-bg.png", "sticker2-rm-bg.png", "sticker3-rm-bg.png", "sticker4-rm-bg.png", "sticker5-rm-bg.png"];
 // ───────────────────────────────────────────────
+
+const STICKER_PREFIX = "[sticker:";
+
+function isStickerText(text: string) {
+  return text.startsWith(STICKER_PREFIX) && text.endsWith("]");
+}
+function stickerFile(text: string) {
+  return text.slice(STICKER_PREFIX.length, -1);
+}
 
 function Avatar({ name }: { name: string }) {
   const letter = name?.charAt(0)?.toUpperCase() || "A";
@@ -23,22 +34,32 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
   const [author, setAuthor] = useState(MEMBERS[0]);
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [stickerOpen, setStickerOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!text.trim()) return;
+  async function postComment(commentText: string) {
+    if (!commentText.trim()) return;
     setSubmitting(true);
-    await fetch("/api/comments", {
+    setStickerOpen(false);
+    const res = await fetch("/api/comments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageUrl, author, text }),
+      body: JSON.stringify({ imageUrl, author, text: commentText }),
     });
-    const updated = await fetch(`/api/comments?imageUrl=${encodeURIComponent(imageUrl)}`).then((r) => r.json());
-    setComments(updated.comments ?? []);
+    const data = await res.json();
+    setComments(data.comments ?? []);
     setText("");
     setSubmitting(false);
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    await postComment(text);
+  }
+
+  async function sendSticker(filename: string) {
+    await postComment(`${STICKER_PREFIX}${filename}]`);
   }
 
   return (
@@ -55,7 +76,19 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
               <Avatar name={c.author} />
               <div className="bg-gray-50 rounded-2xl px-3 py-2 flex-1">
                 <p className="text-xs font-semibold text-purple-600">{c.author}</p>
-                <p className="text-sm text-gray-700 leading-snug">{c.text}</p>
+                {isStickerText(c.text) ? (
+                  <div className="mt-1">
+                    <Image
+                      src={`/stickers/${stickerFile(c.text)}`}
+                      alt="sticker"
+                      width={80}
+                      height={80}
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-700 leading-snug">{c.text}</p>
+                )}
                 <p className="text-[10px] text-gray-300 mt-1">
                   {new Date(c.createdAt).toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </p>
@@ -66,7 +99,24 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
         </div>
       )}
 
-      {/* 輸入區：單排 select + input + button */}
+      {/* 貼圖選單 */}
+      {stickerOpen && (
+        <div className="flex flex-wrap gap-2 mb-3 p-3 bg-gray-50 rounded-2xl">
+          {STICKERS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              disabled={submitting}
+              onClick={() => sendSticker(s)}
+              className="w-14 h-14 flex items-center justify-center rounded-xl hover:bg-pink-100 transition-colors disabled:opacity-40"
+            >
+              <Image src={`/stickers/${s}`} alt={s} width={48} height={48} className="object-contain" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 輸入區：單排 select + sticker + input + button */}
       <form onSubmit={submit} className="flex gap-2 items-center">
         <select
           value={author}
@@ -77,6 +127,14 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
             <option key={m} value={m}>{m}</option>
           ))}
         </select>
+        <button
+          type="button"
+          onClick={() => setStickerOpen((v) => !v)}
+          className={`shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border transition-colors ${stickerOpen ? "bg-pink-100 border-pink-300" : "border-gray-200 bg-white hover:bg-pink-50"}`}
+          aria-label="貼圖"
+        >
+          🩷
+        </button>
         <input
           type="text"
           value={text}
@@ -124,9 +182,9 @@ export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMe
             onClick={() => open(photo)}
           >
             <div className="flex items-center gap-3 px-4 py-3">
-              <Avatar name={photo.title} />
-              <span className="text-sm font-medium text-gray-500">
-                {new Date(photo.uploadedAt).toLocaleDateString("zh-TW", { month: "short", day: "numeric" })}
+              <Avatar name={photo.uploader || photo.title} />
+              <span className="text-sm font-medium text-gray-700">
+                {photo.uploader || "未知"}
               </span>
             </div>
             <div className="relative w-full aspect-[4/3] bg-gray-100">
