@@ -4,6 +4,44 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+// Compress an image File using Canvas before uploading.
+// Target: ≤ 3 MB so we stay well under Vercel's 4.5 MB serverless body limit.
+async function compressImage(file: File, maxBytes = 3 * 1024 * 1024): Promise<File> {
+  return new Promise((resolve) => {
+    const img = document.createElement("img");
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      // Scale down if the image is very large (cap at 2048 px on longest side)
+      const MAX_DIM = 2048;
+      let { width, height } = img;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        if (width >= height) { height = Math.round((height / width) * MAX_DIM); width = MAX_DIM; }
+        else { width = Math.round((width / height) * MAX_DIM); height = MAX_DIM; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      // Try decreasing quality until under maxBytes
+      let quality = 0.85;
+      const tryEncode = () => {
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+          if (blob.size <= maxBytes || quality < 0.3) {
+            resolve(new File([blob], file.name, { type: "image/jpeg" }));
+          } else {
+            quality -= 0.1;
+            tryEncode();
+          }
+        }, "image/jpeg", quality);
+      };
+      tryEncode();
+    };
+    img.src = objectUrl;
+  });
+}
+
 export default function UploadForm() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -31,20 +69,27 @@ export default function UploadForm() {
     setUploading(true);
     setError("");
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("uploader", uploader);
-    formData.append("title", title);
-    formData.append("description", description);
+    try {
+      const compressed = await compressImage(file);
 
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const formData = new FormData();
+      formData.append("file", compressed);
+      formData.append("uploader", uploader);
+      formData.append("title", title);
+      formData.append("description", description);
 
-    if (res.ok) {
-      router.push("/");
-      router.refresh();
-    } else {
-      const data = await res.json();
-      setError(data.error || "上傳失敗，請再試一次");
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+
+      if (res.ok) {
+        router.push("/");
+        router.refresh();
+      } else {
+        const data = await res.json();
+        setError(data.error || "上傳失敗，請再試一次");
+        setUploading(false);
+      }
+    } catch (err) {
+      setError((err as Error).message || "上傳失敗，請再試一次");
       setUploading(false);
     }
   }
