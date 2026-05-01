@@ -58,6 +58,11 @@ export default function UploadForm() {
     setPreview(URL.createObjectURL(file));
   }
 
+  function clearPreview() {
+    setPreview(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const file = fileRef.current?.files?.[0];
@@ -99,11 +104,19 @@ export default function UploadForm() {
       {/* File picker */}
       <div
         className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 transition-colors"
-        onClick={() => fileRef.current?.click()}
+        onClick={() => !preview && fileRef.current?.click()}
       >
         {preview ? (
           <div className="relative mx-auto w-full max-w-sm aspect-video">
             <Image src={preview} alt="preview" fill className="object-contain rounded-lg" />
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); clearPreview(); }}
+              className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white text-sm transition-colors"
+              aria-label="移除照片"
+            >
+              ✕
+            </button>
           </div>
         ) : (
           <p className="text-gray-400">點此選擇照片</p>
