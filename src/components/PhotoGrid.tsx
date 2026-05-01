@@ -8,7 +8,13 @@ import type { Comment } from "@/app/api/comments/route";
 // ── 可自行修改成員名單 ──────────────────────────
 const MEMBERS = ["柔柔", "伴伴"];
 // ── 貼圖清單（檔名對應 public/stickers/ 目錄）──
-const STICKERS = ["sticker1-rm-bg.png", "sticker2-rm-bg.png", "sticker3-rm-bg.png", "sticker4-rm-bg.png", "sticker5-rm-bg.png"];
+const STICKERS = ["sticker1-rm-bg.png",
+  "sticker2-rm-bg.png",
+  "sticker3-rm-bg.png",
+  "sticker4-rm-bg.png",
+  "sticker5-rm-bg.png",
+  "sticker6-rm-bg.png",
+  "sticker7-rm-bg.png"];
 // ───────────────────────────────────────────────
 
 const STICKER_PREFIX = "[sticker:";
