@@ -1,4 +1,5 @@
 import { list, put } from "@vercel/blob";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export interface Comment {
@@ -57,5 +58,6 @@ export async function POST(request: Request) {
     allowOverwrite: true,
   });
 
+  revalidatePath("/");
   return NextResponse.json({ ok: true, comments });
 }

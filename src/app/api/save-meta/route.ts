@@ -1,4 +1,5 @@
 import { put } from "@vercel/blob";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 // Called by the client after a successful direct-to-Blob upload.
@@ -28,5 +29,6 @@ export async function POST(request: Request) {
     allowOverwrite: true,
   });
 
+  revalidatePath("/");
   return NextResponse.json({ ok: true });
 }

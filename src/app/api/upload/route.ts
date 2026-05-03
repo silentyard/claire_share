@@ -1,4 +1,5 @@
 import { put } from "@vercel/blob";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -26,5 +27,6 @@ export async function POST(request: Request) {
     contentType: "application/json",
   });
 
+  revalidatePath("/");
   return NextResponse.json({ url: imageBlob.url });
 }
