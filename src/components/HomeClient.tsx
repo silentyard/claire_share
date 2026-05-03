@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import PhotoFeed from "@/components/PhotoGrid";
 import Countdown from "@/components/Countdown";
+import FortuneAvatar from "@/components/FortuneAvatar";
+import { getFortune } from "@/data/fortunes";
 import type { PhotoMeta } from "@/app/api/photos/route";
 import type { Comment } from "@/app/api/comments/route";
 
@@ -37,6 +39,7 @@ export default function HomeClient({
   ];
 
   const today = todayStr();
+  const fortune = getFortune(today);
   const [selectedDate, setSelectedDate] = useState<string>(today);
   const [emptyMsg] = useState(() => EMPTY_MESSAGES[Math.floor(Math.random() * EMPTY_MESSAGES.length)]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -145,6 +148,9 @@ export default function HomeClient({
           )}
         </div>
       </div>
+
+      {/* 今日運勢浮動 avatar */}
+      <FortuneAvatar fortune={fortune} />
     </main>
   );
 }

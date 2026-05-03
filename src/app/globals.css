@@ -4,3 +4,32 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+@keyframes float {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.fortune-avatar-btn {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 100%;
+  border: 8px solid #BFFFAD;
+  background: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  animation: float 3s ease-in-out infinite;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fortune-avatar-img {
+  transition: transform 0.15s ease;
+  &:active {
+    transform: scale(0.85);
+  }
+}
