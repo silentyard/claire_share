@@ -11,25 +11,39 @@
   100% { transform: translateY(0px); }
 }
 
-.fortune-avatar-btn {
-  width: 4.5rem;
-  height: 4.5rem;
-  border-radius: 100%;
-  border: 8px solid #BFFFAD;
-  background: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  cursor: pointer;
-  animation: float 3s ease-in-out infinite;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
+@layer components {
+  .fortune-avatar-btn {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 100%;
+    border: 8px solid #BFFFAD;
+    background: white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    animation: float 3s ease-in-out infinite;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
 
-.fortune-avatar-img {
-  transition: transform 0.15s ease;
-  &:active {
+  .fortune-avatar-btn:hover {
+    transform: translateY(-8px) scale(1.08);
+    animation-play-state: paused;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .fortune-avatar-btn:active {
+    transform: scale(0.93);
+    animation-play-state: paused;
+  }
+
+  .fortune-avatar-img {
+    transition: transform 0.15s ease;
+  }
+
+  .fortune-avatar-img:active {
     transform: scale(0.85);
   }
 }
