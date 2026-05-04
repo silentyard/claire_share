@@ -19,6 +19,33 @@ const FORTUNES: Record<string, Fortune> = {
     luckyNumber: 3,
     textColor: "#3a3320",
   },
+  "2026-05-05": {
+    level: "大大吉",
+    description:
+      "宜團隊交流，忌過度客氣。魅力爆棚！妳的感染力能順利推進進度，晚上記得吃頓好的！",
+    luckyColor: "日本米白色",
+    luckyColorHex: "#f5f5dc",
+    luckyNumber: 12,
+    textColor: "#6E5E2E",
+  },
+  "2026-05-06": {
+    level: "娃娃·吉",
+    description:
+      "宜偷懶，忌熬夜。今天有滿滿溫暖能量！妳的體貼能化解工作小阻礙，但也別忘了照顧自己喔！",
+    luckyColor: "柔柔粉紅色",
+    luckyColorHex: "#f8caf0",
+    luckyNumber: 1,
+    textColor: "#b80019",
+  },
+  "2026-05-07": {
+    level: "十萬火吉",
+    description:
+      "宜展現親和力，忌獨自扛責任。妳溫暖的笑容是破冰最佳武器。遇到難題記得尋求支援，別把壓力全往肩上攬喔！",
+    luckyColor: "霧橘色",
+    luckyColorHex: "#ffd9a1",
+    luckyNumber: 9,
+    textColor: "#7c0000",
+  }
 };
 // ────────────────────────────────────────────────────────────────────────────
 
