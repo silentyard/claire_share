@@ -35,8 +35,7 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initialComments: Comment[] }) {
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+function CommentSection({ imageUrl, comments, onCommentsUpdate }: { imageUrl: string; comments: Comment[]; onCommentsUpdate: (c: Comment[]) => void }) {
   const [author, setAuthor] = useState(MEMBERS[0]);
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -53,7 +52,7 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
       body: JSON.stringify({ imageUrl, author, text: commentText }),
     });
     const data = await res.json();
-    setComments(data.comments ?? []);
+    onCommentsUpdate(data.comments ?? []);
     setText("");
     setSubmitting(false);
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
@@ -163,6 +162,11 @@ function CommentSection({ imageUrl, initialComments }: { imageUrl: string; initi
 export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMeta[]; initialComments: Record<string, Comment[]> }) {
   const [selected, setSelected] = useState<PhotoMeta | null>(null);
   const [visible, setVisible] = useState(false);
+  const [commentsMap, setCommentsMap] = useState<Record<string, Comment[]>>(initialComments);
+
+  function updateComments(imageUrl: string, comments: Comment[]) {
+    setCommentsMap((prev) => ({ ...prev, [imageUrl]: comments }));
+  }
 
   function open(photo: PhotoMeta) {
     setSelected(photo);
@@ -242,7 +246,7 @@ export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMe
                 <p className="mt-1 text-xs text-gray-300">{new Date(selected.uploadedAt).toLocaleString("zh-TW")}</p>
               </div>
 
-              <CommentSection imageUrl={selected.imageUrl} initialComments={initialComments[selected.imageUrl] ?? []} />
+              <CommentSection imageUrl={selected.imageUrl} comments={commentsMap[selected.imageUrl] ?? []} onCommentsUpdate={(c) => updateComments(selected.imageUrl, c)} />
             </div>
 
 

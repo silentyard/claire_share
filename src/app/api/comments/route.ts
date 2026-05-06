@@ -9,7 +9,6 @@ export interface Comment {
 }
 
 function commentKey(imageUrl: string) {
-  // Use base64 of the imageUrl as filename
   const encoded = Buffer.from(imageUrl).toString("base64url");
   return `comments/${encoded}.json`;
 }
@@ -22,7 +21,7 @@ export async function GET(request: Request) {
   try {
     const { blobs } = await list({ prefix: `comments/${Buffer.from(imageUrl).toString("base64url")}` });
     if (blobs.length === 0) return NextResponse.json({ comments: [] });
-    const res = await fetch(blobs[0].url, { cache: "no-store" });
+    const res = await fetch(blobs[0].downloadUrl, { cache: "no-store" });
     const comments: Comment[] = await res.json();
     return NextResponse.json({ comments });
   } catch {
@@ -43,7 +42,7 @@ export async function POST(request: Request) {
   try {
     const { blobs } = await list({ prefix: `comments/${Buffer.from(imageUrl).toString("base64url")}` });
     if (blobs.length > 0) {
-      const res = await fetch(blobs[0].url, { cache: "no-store" });
+      const res = await fetch(blobs[0].downloadUrl, { cache: "no-store" });
       comments = await res.json();
     }
   } catch {
