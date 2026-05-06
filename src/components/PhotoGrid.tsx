@@ -146,7 +146,7 @@ function CommentSection({ imageUrl, comments, onCommentsUpdate }: { imageUrl: st
           onChange={(e) => setText(e.target.value)}
           placeholder="說點什麼…"
           className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 [color-scheme:light] focus:outline-none focus:ring-2 focus:ring-pink-300"
-        />
+        /> 
         <button
           type="submit"
           disabled={submitting || !text.trim()}
@@ -204,6 +204,28 @@ export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMe
               <p className="font-bold text-gray-800 text-base">{photo.title || "無標題"}</p>
               {photo.description && <p className="text-gray-500 text-sm mt-1 leading-relaxed">{photo.description}</p>}
             </div>
+            {(() => {
+              const lastComment = (commentsMap[photo.imageUrl] ?? []).at(-1);
+              if (!lastComment) return null;
+              return (
+                <div className="px-4 pb-2 pt-2 flex gap-2 items-center bg-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-semibold text-purple-500 mr-1">{lastComment.author}</span>
+                    {isStickerText(lastComment.text) ? (
+                      <Image
+                        src={`/stickers/${stickerFile(lastComment.text)}`}
+                        alt="sticker"
+                        width={28}
+                        height={28}
+                        className="inline object-contain align-middle"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-500 truncate">{lastComment.text}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ))}
       </div>
