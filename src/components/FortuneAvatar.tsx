@@ -28,7 +28,7 @@ export default function FortuneAvatar({ fortune }: Props) {
 
   if (!fortune) return null;
 
-  const buttonSrc = open ? "/fortune-open.png" : "/fortune-close.png";
+  const buttonSrc = open ? "/gaga-fortune-open.png" : "/gaga-fortune-close.png";
   return (
     <div ref={wrapperRef} className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
       {/* Tooltip bubble */}
