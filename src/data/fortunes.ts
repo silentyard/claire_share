@@ -54,6 +54,15 @@ const FORTUNES: Record<string, Fortune> = {
     luckyColorHex: "#8CEDFF",
     luckyNumber: 18,
     textColor: "#c76d00",
+  },
+  "2026-05-09": {
+    level: "我獨自升吉",
+    description:
+      "宜放慢腳步，忌回工作訊息。週末終於到了！把照顧別人的雷達暫時關閉，今天妳只需要好好寵愛自己，享受沒有行程的早晨。",
+    luckyColor: "淡雅紫",
+    luckyColorHex: "#E8D7FF",
+    luckyNumber: 5,
+    textColor: "#b86500",
   }
 };
 // ────────────────────────────────────────────────────────────────────────────
