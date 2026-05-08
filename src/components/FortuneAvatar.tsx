@@ -28,7 +28,7 @@ export default function FortuneAvatar({ fortune }: Props) {
 
   if (!fortune) return null;
 
-  const buttonSrc = open ? "/gaga-fortune-open.png" : "/gaga-fortune-close.png";
+  const buttonSrc = open ? "/karby-fortune-open.png" : "/karby-fortune-close.png";
   return (
     <div ref={wrapperRef} className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
       {/* Tooltip bubble */}
@@ -75,7 +75,8 @@ export default function FortuneAvatar({ fortune }: Props) {
         className="fortune-avatar-btn"
         aria-label="今日運勢"
       >
-        <img src={buttonSrc} alt="Fortune Avatar" className="w-4/5 h-4/5 object-cover rounded-full fortune-avatar-img" />
+        <img src="/karby-fortune-close.png" alt="Fortune Avatar" className="w-4/5 h-4/5 object-cover rounded-full fortune-avatar-img" style={{ display: open ? "none" : "block" }} />
+        <img src="/karby-fortune-open.png" alt="Fortune Avatar" className="w-4/5 h-4/5 object-cover rounded-full fortune-avatar-img" style={{ display: open ? "block" : "none" }} />
       </button>
     </div>
   );
