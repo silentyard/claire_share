@@ -30,11 +30,17 @@ export default function Countdown() {
 
   return (
     <p className="text-pink-600 mt-1 text-sm font-medium tracking-wide">
-      距離 {LABEL} 還有{" "}
+      {/* 距離 {LABEL} */}
+       還有{" "}
       <span className="font-bold">{parts.d}</span>d{" "}
       <span className="font-bold">{String(parts.h).padStart(2, "0")}</span>h{" "}
       <span className="font-bold">{String(parts.m).padStart(2, "0")}</span>m{" "}
       <span className="font-bold">{String(parts.s).padStart(2, "0")}</span>s
+      就可以
+      <br/>
+      <span className="font-bold text-pink-1000 text-[45px]">看到柔柔了！！！</span>
+      {/* fade out bottom edge */}
+      <img className="[mask-image:linear-gradient(to_bottom,black_90%,transparent_100%)]" src="/sticker8.png" alt="sticker"/>
     </p>
   );
 }

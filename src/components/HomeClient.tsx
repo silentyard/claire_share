@@ -150,7 +150,7 @@ export default function HomeClient({
       </div>
 
       {/* 今日運勢浮動 avatar */}
-      <FortuneAvatar fortune={fortune} />
+      <FortuneAvatar selectedDate={selectedDate} />
     </main>
   );
 }
