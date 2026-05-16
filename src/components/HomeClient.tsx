@@ -76,11 +76,11 @@ export default function HomeClient({
               Claire's<br/>Pocket Moments
             </h1>
             {/* <Countdown /> */}
-            <p className="text-pink-600 mt-1 text-base font-semibold text-[40px]">🎉 恭迎柔柔 🎉</p>
+            <p className="text-pink-600 mt-1 text-base font-semibold text-m"> 最溫柔的陪伴💖 </p>
             <div className="flex justify-center mt-2">
-              <img src="/sticker10.png" alt="" className="w-35 h-40 object-contain" style={{ transform: "scaleX(-1)" }} />
-              <img src="/sticker9.png"  alt="" className="w-35 h-40 object-contain" />
-              <img src="/sticker10.png"  alt="" className="w-35 h-40 object-contain" />
+              <img src="/stickers/sticker4-rm-bg.png" alt="" className="w-20 h-20 object-contain" style={{ transform: "scaleX(-1)" }} />
+              <img src="/stickers/sticker1-rm-bg.png"  alt="" className="w-20 h-20 object-contain mx-3" />
+              <img src="/stickers/sticker6-rm-bg.png"  alt="" className="w-20 h-20 object-contain" />
             </div>
           </div>
 
