@@ -3,6 +3,11 @@ export const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 export type AuthUser = "claire" | "banban";
 
+export const USER_DISPLAY_NAMES: Record<AuthUser, string> = {
+  claire: "柔柔",
+  banban: "伴伴",
+};
+
 function getSecret(): string {
   const s = process.env.COOKIE_SECRET;
   if (!s) throw new Error("COOKIE_SECRET is not set");

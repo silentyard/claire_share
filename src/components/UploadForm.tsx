@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -46,8 +46,15 @@ export default function UploadForm() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [uploader, setUploader] = useState("柔柔");
+  const [uploader, setUploader] = useState("");
   const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => { if (data.displayName) setUploader(data.displayName); })
+      .catch(() => {});
+  }, []);
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -133,14 +140,9 @@ export default function UploadForm() {
       {/* Uploader */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">上傳者</label>
-        <select
-          value={uploader}
-          onChange={(e) => setUploader(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 [color-scheme:light] focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
-        >
-          <option value="柔柔">柔柔</option>
-          <option value="伴伴">伴伴</option>
-        </select>
+        <div className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 font-semibold">
+          {uploader || "讀取中…"}
+        </div>
       </div>
 
       {/* Title */}

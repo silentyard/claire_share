@@ -43,7 +43,15 @@ export default function HomeClient({
   const [selectedDate, setSelectedDate] = useState<string>(today);
   const [emptyMsg] = useState(() => EMPTY_MESSAGES[Math.floor(Math.random() * EMPTY_MESSAGES.length)]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => { if (data.displayName) setDisplayName(data.displayName); })
+      .catch(() => {});
+  }, []);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -163,7 +171,7 @@ export default function HomeClient({
               {emptyMsg}
             </p>
           ) : (
-            <PhotoFeed photos={filtered} initialComments={initialComments} />
+            <PhotoFeed photos={filtered} initialComments={initialComments} displayName={displayName} />
           )}
         </div>
       </div>

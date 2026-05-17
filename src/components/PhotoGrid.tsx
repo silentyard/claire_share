@@ -5,8 +5,6 @@ import Image from "next/image";
 import type { PhotoMeta } from "@/app/api/photos/route";
 import type { Comment } from "@/app/api/comments/route";
 
-// ── 可自行修改成員名單 ──────────────────────────
-const MEMBERS = ["柔柔", "伴伴"];
 // ── 貼圖清單（檔名對應 public/stickers/ 目錄）──
 const STICKERS = ["sticker1-rm-bg.png",
   "sticker2-rm-bg.png",
@@ -35,8 +33,7 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-function CommentSection({ imageUrl, comments, onCommentsUpdate }: { imageUrl: string; comments: Comment[]; onCommentsUpdate: (c: Comment[]) => void }) {
-  const [author, setAuthor] = useState(MEMBERS[0]);
+function CommentSection({ imageUrl, comments, onCommentsUpdate, displayName }: { imageUrl: string; comments: Comment[]; onCommentsUpdate: (c: Comment[]) => void; displayName: string }) {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [stickerOpen, setStickerOpen] = useState(false);
@@ -49,7 +46,7 @@ function CommentSection({ imageUrl, comments, onCommentsUpdate }: { imageUrl: st
     const res = await fetch("/api/comments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageUrl, author, text: commentText }),
+      body: JSON.stringify({ imageUrl, author: displayName, text: commentText }),
     });
     const data = await res.json();
     onCommentsUpdate(data.comments ?? []);
@@ -123,15 +120,9 @@ function CommentSection({ imageUrl, comments, onCommentsUpdate }: { imageUrl: st
 
       {/* 輸入區：單排 select + sticker + input + button */}
       <form onSubmit={submit} className="flex gap-2 items-center">
-        <select
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
-          className="border border-gray-200 rounded-xl px-2 py-2 text-sm text-gray-800 [color-scheme:light] focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white shrink-0"
-        >
-          {MEMBERS.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
+        <div className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 font-semibold bg-gray-50 shrink-0 whitespace-nowrap">
+          {displayName || "…"}
+        </div>
         <button
           type="button"
           onClick={() => setStickerOpen((v) => !v)}
@@ -159,7 +150,7 @@ function CommentSection({ imageUrl, comments, onCommentsUpdate }: { imageUrl: st
   );
 }
 
-export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMeta[]; initialComments: Record<string, Comment[]> }) {
+export default function PhotoFeed({ photos, initialComments, displayName }: { photos: PhotoMeta[]; initialComments: Record<string, Comment[]>; displayName: string }) {
   const [selected, setSelected] = useState<PhotoMeta | null>(null);
   const [visible, setVisible] = useState(false);
   const [commentsMap, setCommentsMap] = useState<Record<string, Comment[]>>(initialComments);
@@ -268,7 +259,7 @@ export default function PhotoFeed({ photos, initialComments }: { photos: PhotoMe
                 <p className="mt-1 text-xs text-gray-300">{new Date(selected.uploadedAt).toLocaleString("zh-TW")}</p>
               </div>
 
-              <CommentSection imageUrl={selected.imageUrl} comments={commentsMap[selected.imageUrl] ?? []} onCommentsUpdate={(c) => updateComments(selected.imageUrl, c)} />
+              <CommentSection imageUrl={selected.imageUrl} comments={commentsMap[selected.imageUrl] ?? []} onCommentsUpdate={(c) => updateComments(selected.imageUrl, c)} displayName={displayName} />
             </div>
 
 
