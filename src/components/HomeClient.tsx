@@ -45,6 +45,11 @@ export default function HomeClient({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  }
+
   // 取得所有有照片的日期（排序新到舊）
   const availableDates = Array.from(
     new Set(photos.map((p) => toLocalDateStr(p.uploadedAt)))
@@ -113,6 +118,14 @@ export default function HomeClient({
                     </button>
                   ))
                 )}
+                <div className="border-t border-gray-100 mt-1">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:bg-red-50 hover:text-red-400 transition-colors"
+                  >
+                    登出 🔒
+                  </button>
+                </div>
               </div>
             )}
           </div>
