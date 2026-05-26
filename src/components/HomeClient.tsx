@@ -2,6 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { DayPicker, getDefaultClassNames } from "@daypicker/react";
+import "@daypicker/react/style.css";
+import { zhTW } from "date-fns/locale";
 import PhotoFeed from "@/components/PhotoGrid";
 import Countdown from "@/components/Countdown";
 import FortuneAvatar from "@/components/FortuneAvatar";
@@ -11,6 +14,10 @@ import type { Comment } from "@/app/api/comments/route";
 
 function toLocalDateStr(isoString: string): string {
   const d = new Date(isoString);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function dateToStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
@@ -58,12 +65,8 @@ export default function HomeClient({
     window.location.href = "/login";
   }
 
-  // 取得所有有照片的日期（排序新到舊）
-  const availableDates = Array.from(
-    new Set(photos.map((p) => toLocalDateStr(p.uploadedAt)))
-  ).sort((a, b) => b.localeCompare(a));
-
   // 目前顯示的照片
+  const availableDates = new Set(photos.map((p) => toLocalDateStr(p.uploadedAt)));
   const filtered = photos.filter((p) => toLocalDateStr(p.uploadedAt) === selectedDate);
   const isToday = selectedDate === today;
 
@@ -109,27 +112,32 @@ export default function HomeClient({
 
             {/* Dropdown */}
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl overflow-hidden z-20">
-                <p className="text-xs text-gray-400 font-semibold px-4 pt-3 pb-1 uppercase tracking-wide">選擇日期</p>
-                {availableDates.length === 0 ? (
-                  <p className="text-sm text-gray-300 px-4 py-3">還沒有任何照片</p>
-                ) : (
-                  availableDates.map((date) => (
-                    <button
-                      key={date}
-                      onClick={() => { setSelectedDate(date); setMenuOpen(false); }}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-pink-50 ${
-                        date === selectedDate ? "font-bold text-pink-500" : "text-gray-700"
-                      }`}
-                    >
-                      {date === today ? `今天（${formatMenuDate(date)}）` : formatMenuDate(date)}
-                    </button>
-                  ))
-                )}
-                <div className="border-t border-gray-100 mt-1">
+              <div className="absolute right-0 mt-2 bg-white rounded-2xl shadow-xl z-20 p-3">
+                <DayPicker
+                  mode="single"
+                  locale={zhTW}
+                  selected={(() => { const [y,m,d] = selectedDate.split("-").map(Number); return new Date(y, m-1, d); })()}
+                  onSelect={(date) => {
+                    if (date) { setSelectedDate(dateToStr(date)); setMenuOpen(false); }
+                  }}
+                  disabled={(date) => !availableDates.has(dateToStr(date)) || date > new Date()}
+                  classNames={{
+                    ...getDefaultClassNames(),
+                    root: `${getDefaultClassNames().root} !font-sans text-sm`,
+                    month_caption: "flex justify-center items-center font-semibold text-gray-700 mb-1",
+                    chevron: "fill-pink-400",
+                    day: "rounded-full w-8 h-8",
+                    day_button: "w-8 h-8 rounded-full text-xs font-medium",
+                    selected: "!bg-pink-400 !text-white !rounded-full font-bold",
+                    today: "text-pink-500 font-bold",
+                    disabled: "!opacity-25 !cursor-not-allowed",
+                    outside: "opacity-0 pointer-events-none",
+                  }}
+                />
+                <div className="border-t border-gray-100 pt-1 -mx-3 px-3">
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:bg-red-50 hover:text-red-400 transition-colors"
+                    className="w-full text-left py-2 text-sm text-gray-400 hover:text-red-400 transition-colors"
                   >
                     登出 🔒
                   </button>
