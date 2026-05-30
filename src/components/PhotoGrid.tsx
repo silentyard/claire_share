@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import useEmblaCarousel from "embla-carousel-react";
 import type { PhotoMeta } from "@/app/api/photos/route";
 import type { Comment } from "@/app/api/comments/route";
+import { getPhotoImageUrls, getPostKey, hasMultipleImages } from "@/lib/photo-post";
 
 // ── 貼圖清單（檔名對應 public/stickers/ 目錄）──
 const STICKERS = ["sticker1-rm-bg.png",
@@ -33,7 +35,72 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-function CommentSection({ imageUrl, comments, onCommentsUpdate, displayName }: { imageUrl: string; comments: Comment[]; onCommentsUpdate: (c: Comment[]) => void; displayName: string }) {
+function ImageCarousel({ imageUrls, title }: { imageUrls: string[]; title: string }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    setScrollSnaps(emblaApi.scrollSnapList());
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+  }, [emblaApi, onSelect]);
+
+  return (
+    <div className="relative w-full aspect-[4/3] bg-gray-100 shrink-0 overflow-hidden">
+      <div className="h-full overflow-hidden" ref={emblaRef}>
+        <div className="flex h-full">
+          {imageUrls.map((url, index) => (
+            <div key={url} className="relative min-w-0 flex-[0_0_100%] h-full">
+              <Image src={url} alt={`${title || "照片"} ${index + 1}`} fill className="object-cover" sizes="384px" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {imageUrls.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => emblaApi?.scrollPrev()}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/35 text-white hover:bg-black/50 transition-colors"
+            aria-label="上一張照片"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={() => emblaApi?.scrollNext()}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/35 text-white hover:bg-black/50 transition-colors"
+            aria-label="下一張照片"
+          >
+            ›
+          </button>
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+            {scrollSnaps.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => emblaApi?.scrollTo(index)}
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${index === selectedIndex ? "bg-white" : "bg-white/45"}`}
+                aria-label={`前往第 ${index + 1} 張照片`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CommentSection({ postKey, imageUrl, comments, onCommentsUpdate, displayName }: { postKey: string; imageUrl: string; comments: Comment[]; onCommentsUpdate: (c: Comment[]) => void; displayName: string }) {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [stickerOpen, setStickerOpen] = useState(false);
@@ -46,7 +113,7 @@ function CommentSection({ imageUrl, comments, onCommentsUpdate, displayName }: {
     const res = await fetch("/api/comments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageUrl, author: displayName, text: commentText }),
+      body: JSON.stringify({ postId: postKey, imageUrl, author: displayName, text: commentText }),
     });
     const data = await res.json();
     onCommentsUpdate(data.comments ?? []);
@@ -155,8 +222,8 @@ export default function PhotoFeed({ photos, initialComments, displayName }: { ph
   const [visible, setVisible] = useState(false);
   const [commentsMap, setCommentsMap] = useState<Record<string, Comment[]>>(initialComments);
 
-  function updateComments(imageUrl: string, comments: Comment[]) {
-    setCommentsMap((prev) => ({ ...prev, [imageUrl]: comments }));
+  function updateComments(postKey: string, comments: Comment[]) {
+    setCommentsMap((prev) => ({ ...prev, [postKey]: comments }));
   }
 
   function open(photo: PhotoMeta) {
@@ -176,29 +243,37 @@ export default function PhotoFeed({ photos, initialComments, displayName }: { ph
   return (
     <>
       <div className="flex flex-col gap-4">
-        {photos.map((photo) => (
-          <div
-            key={photo.imageUrl}
-            className="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
-            onClick={() => open(photo)}
-          >
-            <div className="flex items-center gap-3 px-4 py-3">
-              <Avatar name={photo.uploader || photo.title} />
-              <span className="text-sm font-medium text-gray-700">
-                {photo.uploader || "未知"}
-              </span>
-            </div>
-            <div className="relative w-full aspect-[4/3] bg-gray-100">
-              <Image src={photo.imageUrl} alt={photo.title} fill className="object-cover" sizes="384px" />
-            </div>
-            <div className="px-4 py-3">
-              <p className="font-bold text-gray-800 text-base">{photo.title || "無標題"}</p>
-              {photo.description && <p className="text-gray-500 text-sm mt-1 leading-relaxed">{photo.description}</p>}
-            </div>
-            {(() => {
-              const lastComment = (commentsMap[photo.imageUrl] ?? []).at(-1);
-              if (!lastComment) return null;
-              return (
+        {photos.map((photo) => {
+          const postKey = getPostKey(photo);
+          const imageUrls = getPhotoImageUrls(photo);
+          const previewUrl = imageUrls[0];
+          const lastComment = (commentsMap[postKey] ?? []).at(-1);
+
+          return (
+            <div
+              key={postKey}
+              className="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+              onClick={() => open(photo)}
+            >
+              <div className="flex items-center gap-3 px-4 py-3">
+                <Avatar name={photo.uploader || photo.title} />
+                <span className="text-sm font-medium text-gray-700">
+                  {photo.uploader || "未知"}
+                </span>
+              </div>
+              <div className="relative w-full aspect-[4/3] bg-gray-100">
+                {previewUrl && <Image src={previewUrl} alt={photo.title} fill className="object-cover" sizes="384px" />}
+                {hasMultipleImages(photo) && (
+                  <span className="absolute right-3 top-3 rounded-full bg-black/45 px-2 py-1 text-xs font-semibold text-white">
+                    ⧉ {imageUrls.length}
+                  </span>
+                )}
+              </div>
+              <div className="px-4 py-3">
+                <p className="font-bold text-gray-800 text-base">{photo.title || "無標題"}</p>
+                {photo.description && <p className="text-gray-500 text-sm mt-1 leading-relaxed">{photo.description}</p>}
+              </div>
+              {lastComment && (
                 <div className="px-4 pb-2 pt-2 flex gap-2 items-center bg-gray-100">
                   <div className="flex-1 min-w-0">
                     <span className="text-xs font-semibold text-purple-500 mr-1">{lastComment.author}</span>
@@ -215,14 +290,19 @@ export default function PhotoFeed({ photos, initialComments, displayName }: { ph
                     )}
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Lightbox */}
       {selected && (
+        (() => {
+          const postKey = getPostKey(selected);
+          const imageUrls = getPhotoImageUrls(selected);
+
+          return (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ backgroundColor: visible ? "rgba(0,0,0,0.65)" : "rgba(0,0,0,0)", transition: "background-color 0.3s" }}
@@ -247,9 +327,7 @@ export default function PhotoFeed({ photos, initialComments, displayName }: { ph
             </button>
 
             {/* 圖片：無任何 padding，直接貼頂 */}
-            <div className="relative w-full aspect-[4/3] bg-gray-100 shrink-0">
-              <Image src={selected.imageUrl} alt={selected.title} fill className="object-cover" sizes="384px" />
-            </div>
+            <ImageCarousel imageUrls={imageUrls} title={selected.title} />
 
             {/* 可捲動內容 */}
             <div className="overflow-y-auto flex-1">
@@ -259,12 +337,14 @@ export default function PhotoFeed({ photos, initialComments, displayName }: { ph
                 <p className="mt-1 text-xs text-gray-300">{new Date(selected.uploadedAt).toLocaleString("zh-TW")}</p>
               </div>
 
-              <CommentSection imageUrl={selected.imageUrl} comments={commentsMap[selected.imageUrl] ?? []} onCommentsUpdate={(c) => updateComments(selected.imageUrl, c)} displayName={displayName} />
+              <CommentSection postKey={postKey} imageUrl={selected.imageUrl} comments={commentsMap[postKey] ?? []} onCommentsUpdate={(c) => updateComments(postKey, c)} displayName={displayName} />
             </div>
 
 
           </div>
         </div>
+          );
+        })()
       )}
     </>
   );
