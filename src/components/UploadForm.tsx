@@ -4,6 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+type SelectedUploadFile = {
+  file: File;
+  previewUrl: string;
+};
+
 // Compress an image File using Canvas before uploading.
 // Target: ≤ 3 MB so we stay well under Vercel's 4.5 MB serverless body limit.
 async function compressImage(file: File, maxBytes = 3 * 1024 * 1024): Promise<File> {
@@ -45,7 +50,8 @@ async function compressImage(file: File, maxBytes = 3 * 1024 * 1024): Promise<Fi
 export default function UploadForm() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const previewUrlsRef = useRef<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<SelectedUploadFile[]>([]);
   const [uploader, setUploader] = useState("");
   const [title, setTitle] = useState("");
 
@@ -55,26 +61,50 @@ export default function UploadForm() {
       .then((data) => { if (data.displayName) setUploader(data.displayName); })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+
+    const nextFiles = files.map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      previewUrlsRef.current.push(previewUrl);
+      return { file, previewUrl };
+    });
+
+    setSelectedFiles((current) => [...current, ...nextFiles]);
+    if (fileRef.current) fileRef.current.value = "";
   }
 
-  function clearPreview() {
-    setPreview(null);
+  function removeFile(previewUrl: string) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrlsRef.current = previewUrlsRef.current.filter((url) => url !== previewUrl);
+    setSelectedFiles((current) => current.filter((item) => item.previewUrl !== previewUrl));
+  }
+
+  function clearFiles() {
+    selectedFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    previewUrlsRef.current = previewUrlsRef.current.filter(
+      (url) => !selectedFiles.some((item) => item.previewUrl === url)
+    );
+    setSelectedFiles([]);
     if (fileRef.current) fileRef.current.value = "";
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const file = fileRef.current?.files?.[0];
-    if (!file) {
-      setError("請選擇一張照片");
+    if (selectedFiles.length === 0) {
+      setError("請選擇至少一張照片");
       return;
     }
 
@@ -82,10 +112,12 @@ export default function UploadForm() {
     setError("");
 
     try {
-      const compressed = await compressImage(file);
+      const compressedFiles = await Promise.all(
+        selectedFiles.map((item) => compressImage(item.file))
+      );
 
       const formData = new FormData();
-      formData.append("file", compressed);
+      compressedFiles.forEach((file) => formData.append("file", file));
       formData.append("uploader", uploader);
       formData.append("title", title);
       formData.append("description", description);
@@ -110,28 +142,54 @@ export default function UploadForm() {
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* File picker */}
       <div
-        className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 transition-colors"
-        onClick={() => !preview && fileRef.current?.click()}
+        className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 transition-colors"
+        onClick={() => selectedFiles.length === 0 && fileRef.current?.click()}
       >
-        {preview ? (
-          <div className="relative mx-auto w-full max-w-sm aspect-video">
-            <Image src={preview} alt="preview" fill className="object-contain rounded-lg" />
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); clearPreview(); }}
-              className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white text-sm transition-colors"
-              aria-label="移除照片"
-            >
-              ✕
-            </button>
+        {selectedFiles.length > 0 ? (
+          <div className="space-y-3">
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {selectedFiles.map((item, index) => (
+                <div key={item.previewUrl} className="relative shrink-0 w-28 aspect-square rounded-xl overflow-hidden bg-gray-100">
+                  <Image src={item.previewUrl} alt={`preview ${index + 1}`} fill className="object-cover" />
+                  <span className="absolute left-1.5 top-1.5 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-semibold text-white">
+                    {index + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); removeFile(item.previewUrl); }}
+                    className="absolute right-1.5 top-1.5 w-6 h-6 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white text-xs transition-colors"
+                    aria-label="移除照片"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+                className="flex-1 rounded-full bg-pink-50 px-3 py-2 text-sm font-semibold text-pink-500 hover:bg-pink-100 transition-colors"
+              >
+                再加照片
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); clearFiles(); }}
+                className="rounded-full bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-100 transition-colors"
+              >
+                清空
+              </button>
+            </div>
           </div>
         ) : (
-          <p className="text-gray-400">點此選擇照片</p>
+          <p className="py-6 text-gray-400">點此選擇照片（可多選）</p>
         )}
         <input
           ref={fileRef}
           type="file"
           accept="image/*"
+          multiple
           className="hidden"
           onChange={handleFileChange}
         />

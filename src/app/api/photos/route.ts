@@ -1,13 +1,8 @@
 import { list } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import type { PhotoMeta } from "@/lib/photo-post";
 
-export interface PhotoMeta {
-  title: string;
-  description: string;
-  imageUrl: string;
-  uploadedAt: string;
-  uploader?: string;
-}
+export type { PhotoMeta };
 
 export async function GET() {
   const { blobs } = await list({ prefix: "photos/", limit: 200 });
