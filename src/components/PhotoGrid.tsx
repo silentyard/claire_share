@@ -38,7 +38,6 @@ function Avatar({ name }: { name: string }) {
 function ImageCarousel({ imageUrls, title }: { imageUrls: string[]; title: string }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -47,8 +46,6 @@ function ImageCarousel({ imageUrls, title }: { imageUrls: string[]; title: strin
 
   useEffect(() => {
     if (!emblaApi) return;
-    setScrollSnaps(emblaApi.scrollSnapList());
-    onSelect();
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);
@@ -84,7 +81,7 @@ function ImageCarousel({ imageUrls, title }: { imageUrls: string[]; title: strin
             ›
           </button>
           <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
-            {scrollSnaps.map((_, index) => (
+            {imageUrls.map((_, index) => (
               <button
                 key={index}
                 type="button"

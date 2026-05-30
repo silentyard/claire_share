@@ -89,7 +89,7 @@ export default function HomeClient({
         <div className="relative flex items-start justify-between">
           <div className="flex-1 text-center">
             <h1 className="text-4xl font-black leading-tight text-purple-800 mb-2">
-              Claire's<br/>Pocket Moments
+              Claire&apos;s<br/>Pocket Moments
             </h1>
             {/* <Countdown /> */}
             <p className="text-pink-600 mt-1 text-base font-semibold text-m"> 最溫柔的陪伴💖 </p>
